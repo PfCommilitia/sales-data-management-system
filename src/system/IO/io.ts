@@ -14,6 +14,10 @@ export function setBasePath(path: string) {
   basePath = path;
 }
 
+export function getBasePath() {
+  return basePath;
+}
+
 export function convertPath(suffix: string) {
   return Path.join(basePath, suffix);
 }
