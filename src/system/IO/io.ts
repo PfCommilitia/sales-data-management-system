@@ -28,29 +28,34 @@ export function initPath() {
   });
 }
 
-function loadLocalization(key: string) {
+export function loadLocalization(key: string) {
+  return getJson(convertPath(`localization.json`), key) ?? key;
+}
+
+export function saveLocalization(key: string, value: string) {
+  setJson(convertPath(`localization.json`), key, value);
+}
+
+export function loadJson(path: string): Record<string, any> {
   try {
-    const json = JSON.parse(
-      Fs.readFileSync(convertPath(`localization.json`), "utf-8")
-    );
-    return json[key] ?? key;
-  } catch (err) {
-    return key;
+    return JSON.parse(Fs.readFileSync(path, "utf-8"));
+  } catch(err) {
+    return {};
   }
 }
 
-function saveLocalization(key: string, value: string) {
-  try {
-    const json = JSON.parse(
-      Fs.readFileSync(convertPath(`localization.json`), "utf-8")
-    );
-    json[key] = value;
-    Fs.writeFileSync(convertPath(`localization.json`), JSON.stringify(json));
-  } catch (err) {
-    const json = {} as Record<string, string>;
-    json[key] = value;
-    Fs.writeFileSync(convertPath(`localization.json`), JSON.stringify(json));
-  }
+export function getJson(path: string, key: string) {
+  return loadJson(path)[key];
+}
+
+export function saveJson(path: string, json: Record<string, any>) {
+  Fs.writeFileSync(path, JSON.stringify(json));
+}
+
+export function setJson(path: string, key: string, value: any) {
+  const json = loadJson(path);
+  json[key] = value;
+  saveJson(path, json);
 }
 
 export const locale = {
@@ -63,4 +68,11 @@ export const path = {
   getBase: getBasePath,
   convert: convertPath,
   init: initPath
+};
+
+export const json = {
+  load: loadJson,
+  get: getJson,
+  save: saveJson,
+  set: setJson
 };
