@@ -2,6 +2,8 @@ import { ModifierType } from "./modifierType";
 import { Product } from "./product";
 import { Operator } from "./operator";
 import { Opt } from "./opt";
+import { convertPath } from "../IO/io";
+import * as Fs from "fs";
 
 interface ModifierSource {
   id: number;
@@ -50,10 +52,18 @@ export class Modifier {
     } as ModifierSource);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static fromNumber(type: number): Opt<Modifier> {
-    // TODO: Implement this method; now it just returns None
-    return Opt.create();
+  public static fromNumber(id: number): Opt<Modifier> {
+    try {
+      return Opt.create(
+        new Modifier(JSON.parse(Fs.readFileSync(convertPath(`modifiers/${ id }.json`), "utf-8")))
+      );
+    } catch (err) {
+      return Opt.create();
+    }
+  }
+
+  public writeToFile(): void {
+    Fs.writeFileSync(convertPath(`modifiers/${ this.toNumber() }.json`), this.toJson(), "utf-8");
   }
 
   public toNumber(): number {
