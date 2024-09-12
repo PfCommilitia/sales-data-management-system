@@ -46,13 +46,13 @@ export class Modifier {
     this.amount = fromObject.amount;
   }
 
-  public generate(
+  public async generate(
     type: ModifierType,
     product: Product,
     operator: Operator,
     timeStamp: Date,
     amount: number
-  ): Modifier {
+  ): Promise<Modifier> {
     const modifier = new Modifier({
       id: meta.lastModifierId,
       type: ModifierType.toNumber(type),
@@ -65,7 +65,7 @@ export class Modifier {
       amount
     });
     meta.lastModifierId += 1;
-    modifier.writeToFile();
+    await modifier.writeToFile();
     Modifier.loaded.push(modifier);
     return modifier;
   }
@@ -92,8 +92,8 @@ export class Modifier {
     return Opt.create(Modifier.loaded[id]);
   }
 
-  public writeToFile(): void {
-    Fs.writeFileSync(
+  public async writeToFile(): Promise<void> {
+    await Fs.promises.writeFile(
       convertPath(`modifiers/${ this.toNumber() }.json`),
       this.toJson(),
       "utf-8"
@@ -104,9 +104,9 @@ export class Modifier {
     return this.id;
   }
 
-  public set(arg: Partial<this>): void {
+  public async set(arg: Partial<this>): Promise<void> {
     Object.assign(this, arg);
-    this.writeToFile();
+    await this.writeToFile();
   }
 
   public static async loadModifiers(): Promise<void> {

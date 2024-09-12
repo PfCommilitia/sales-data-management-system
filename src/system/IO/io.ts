@@ -12,15 +12,17 @@ let basePath = "";
 
 export const meta = {} as Record<string, any>;
 
-export function setBasePath(path: string) {
+export const localization = {} as Record<string, any>;
+
+export function setBasePath(path: string): void {
   basePath = path;
 }
 
-export function getBasePath() {
+export function getBasePath(): string {
   return basePath;
 }
 
-export function convertPath(suffix: string) {
+export function convertPath(suffix: string): string {
   return Path.join(basePath, suffix);
 }
 
@@ -31,26 +33,23 @@ export async function initPath(): Promise<void> {
     )
   );
   if (!Fs.existsSync(convertPath("meta.json"))) {
-    Fs.writeFileSync(convertPath("meta.json"), JSON.stringify({
+    await saveJson(convertPath("meta.json"), {
       lastModifierId: 0,
       lastOperatorId: 0,
       lastProductId: 0,
       lastProductTypeId: 0
-    }));
+    });
   }
 }
 
-(
-  () => {
-    const metaSource = JSON.parse(
-      Fs.readFileSync(convertPath("meta.json"), "utf-8")
-    );
-    meta.lastModifierId = metaSource.lastModifierId;
-    meta.lastOperatorId = metaSource.lastOperatorId;
-    meta.lastProductId = metaSource.lastProductId;
-    meta.lastProductTypeId = metaSource.lastProductTypeId;
-  }
-)();
+export async function loadMeta(): Promise<void> {
+  const metaSource = await loadJson(convertPath("meta.json"));
+  meta.lastModifierId = metaSource.lastModifierId;
+  meta.lastOperatorId = metaSource.lastOperatorId;
+  meta.lastProductId = metaSource.lastProductId;
+  meta.lastProductTypeId = metaSource.lastProductTypeId;
+}
+
 
 export async function loadAll<T>(
   path: string,
@@ -65,11 +64,7 @@ export async function loadAll<T>(
         await Fs.promises.readdir(convertPath(path))
       ).map(
         async file => {
-          const obj = JSON.parse(
-            await Fs.promises.readFile(
-              convertPath(`${ path }/${ file }`), "utf-8"
-            )
-          ) as Record<string, any>;
+          const obj = await loadJson(convertPath(`${ path }/${ file }`));
           if (filter(obj)) {
             return process(obj);
           }
@@ -80,39 +75,64 @@ export async function loadAll<T>(
   ).filter(obj => obj !== null) as unknown as T[];
 }
 
-export function loadLocalization(key: string) {
-  return getJson(convertPath(`localization.json`), key) ?? key;
+export function getLocalization(key: string): string {
+  return (
+    typeof localization[key] === "string" && localization[key]
+  ) || key;
 }
 
-export function saveLocalization(key: string, value: string) {
-  setJson(convertPath(`localization.json`), key, value);
+export async function loadLocalization(key: string): Promise<void> {
+  Object.assign(
+    localization,
+    await getJson(convertPath(`localization.json`), key) ?? {}
+  );
 }
 
-export function loadJson(path: string): Record<string, any> {
+export async function saveLocalization(
+  key: string,
+  value: string
+): Promise<void> {
+  await setJson(convertPath(`localization.json`), key, value);
+}
+
+export async function loadJson(path: string): Promise<Record<string, any>> {
   try {
-    return JSON.parse(Fs.readFileSync(path, "utf-8"));
+    return JSON.parse(await Fs.promises.readFile(path, "utf-8"));
   } catch (err) {
     return {};
   }
 }
 
-export function getJson(path: string, key: string) {
-  return loadJson(path)[key];
+export async function getJson(
+  path: string,
+  key: string
+): Promise<Record<string, any> | undefined> {
+  return (
+    await loadJson(path)
+  )[key];
 }
 
-export function saveJson(path: string, json: Record<string, any>) {
-  Fs.writeFileSync(path, JSON.stringify(json));
+export async function saveJson(
+  path: string,
+  json: Record<string, any>
+): Promise<void> {
+  await Fs.promises.writeFile(path, JSON.stringify(json));
 }
 
-export function setJson(path: string, key: string, value: any) {
-  const json = loadJson(path);
+export async function setJson(
+  path: string,
+  key: string,
+  value: any
+): Promise<void> {
+  const json = await loadJson(path);
   json[key] = value;
-  saveJson(path, json);
+  await saveJson(path, json);
 }
 
 export const locale = {
   load: loadLocalization,
-  save: saveLocalization
+  save: saveLocalization,
+  get: getLocalization
 };
 
 export const path = {

@@ -1,5 +1,5 @@
 import { Opt } from "./opt";
-import { convertPath, loadAll, meta } from "../IO/io";
+import { convertPath, loadAll, loadJson, meta, saveJson } from "../IO/io";
 import * as Fs from "fs";
 
 interface OperatorSource {
@@ -23,10 +23,10 @@ export class Operator {
     this.internalName = fromObject.internalName;
   }
 
-  public static generate(internalName: string): Operator {
+  public static async generate(internalName: string): Promise<Operator> {
     const operator = new Operator({ id: meta.lastOperatorId, internalName });
     meta.lastOperatorId += 1;
-    operator.writeToFile(true);
+    await operator.writeToFile(true);
     Operator.loaded.push(operator);
     Operator.index[operator.toInternalName()] = operator;
     return operator;
@@ -47,12 +47,13 @@ export class Operator {
     return Opt.create(Operator.loaded[id]);
   }
 
-  public writeToFile(updateIndex: boolean): void {
-    Fs.writeFileSync(convertPath(`operators/${ this.id }.json`), this.toJson());
+  public async writeToFile(updateIndex: boolean): Promise<void> {
+    await Fs.promises.writeFile(
+      convertPath(`operators/${ this.id }.json`),
+      this.toJson()
+    );
     if (updateIndex) {
-      Fs.writeFileSync(
-        convertPath(`operatorsIndex.json`), JSON.stringify(Operator.index)
-      );
+      await saveJson(convertPath(`operatorsIndex.json`), Operator.index);
     }
   }
 
@@ -68,9 +69,9 @@ export class Operator {
     return this.internalName;
   }
 
-  public set(arg: Partial<this>): void {
+  public async set(arg: Partial<this>): Promise<void> {
     Object.assign(this, arg);
-    this.writeToFile(false);
+    await this.writeToFile(false);
   }
 
   public static async loadOperators(): Promise<void> {
@@ -78,13 +79,7 @@ export class Operator {
       "operators", isOperatorSource,
       source => new Operator(source as OperatorSource)
     );
-    try {
-      Operator.index = JSON.parse(
-        Fs.readFileSync(convertPath("operatorsIndex.json"), "utf-8")
-      );
-    } catch (err) {
-      Operator.index = {};
-    }
+    Operator.index = await loadJson(convertPath("operatorsIndex.json"));
   }
 }
 

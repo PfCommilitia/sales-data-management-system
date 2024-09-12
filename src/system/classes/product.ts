@@ -1,7 +1,7 @@
 import { ProductType } from "./productType";
 import { Opt } from "./opt";
 import * as Fs from "fs";
-import { convertPath, loadAll, meta } from "../IO/io";
+import { convertPath, loadAll, loadJson, meta, saveJson } from "../IO/io";
 
 interface ProductSource {
   id: number;
@@ -36,7 +36,10 @@ export class Product {
     this.stock = fromObject.stock;
   }
 
-  public generate(internalName: string, type: ProductType) {
+  public async generate(
+    internalName: string,
+    type: ProductType
+  ): Promise<Product> {
     const product = new Product({
       id: meta.lastProductId,
       internalName,
@@ -45,7 +48,7 @@ export class Product {
       stock: 0
     });
     meta.lastProductId += 1;
-    product.writeToFile(true);
+    await product.writeToFile(true);
     Product.loaded.push(product);
     Product.index[product.toInternalName()] = product;
     return product;
@@ -69,12 +72,13 @@ export class Product {
     return Opt.create(Product.loaded[id]);
   }
 
-  public writeToFile(updateIndex: boolean): void {
-    Fs.writeFileSync(convertPath(`products/${ this.id }.json`), this.toJson());
+  public async writeToFile(updateIndex: boolean): Promise<void> {
+    await Fs.promises.writeFile(
+      convertPath(`products/${ this.id }.json`),
+      this.toJson()
+    );
     if (updateIndex) {
-      Fs.writeFileSync(
-        convertPath(`productsIndex.json`), JSON.stringify(Product.index)
-      );
+      await saveJson(convertPath(`productsIndex.json`), Product.index);
     }
   }
 
@@ -90,9 +94,9 @@ export class Product {
     return this.internalName;
   }
 
-  public set(arg: Partial<this>): void {
+  public async set(arg: Partial<this>): Promise<void> {
     Object.assign(this, arg);
-    this.writeToFile(false);
+    await this.writeToFile(false);
   }
 
   public static async loadProducts(): Promise<void> {
@@ -100,12 +104,7 @@ export class Product {
       "products", isProductSource,
       source => new Product(source as ProductSource)
     );
-    try {
-      Product.index =
-        JSON.parse(Fs.readFileSync(convertPath("productsIndex.json"), "utf-8"));
-    } catch (err) {
-      Product.index = {};
-    }
+    Product.index = await loadJson(convertPath("productsIndex.json"));
   }
 }
 
