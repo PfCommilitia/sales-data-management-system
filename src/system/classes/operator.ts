@@ -28,6 +28,7 @@ export class Operator {
     meta.lastOperatorId += 1;
     operator.writeToFile(true);
     Operator.loaded.push(operator);
+    Operator.index[operator.toInternalName()] = operator;
     return operator;
   }
 
@@ -48,18 +49,8 @@ export class Operator {
 
   public writeToFile(updateIndex: boolean): void {
     Fs.writeFileSync(convertPath(`operators/${ this.id }.json`), this.toJson());
-    if (!updateIndex) {
-      return;
-    }
-    try {
-      const index = JSON.parse(Fs.readFileSync(convertPath(`operatorsIndex.json`), "utf-8"));
-      index[this.toInternalName()] = this.toNumber();
-      Fs.writeFileSync(convertPath(`operatorsIndex.json`), JSON.stringify(index));
-    } catch (err) {
-      Fs.writeFileSync(
-        convertPath(`operatorsIndex.json`),
-        JSON.stringify({ [this.toInternalName()]: this.toNumber() })
-      );
+    if (updateIndex) {
+      Fs.writeFileSync(convertPath(`operatorsIndex.json`), JSON.stringify(Operator.index));
     }
   }
 
@@ -85,6 +76,13 @@ export class Operator {
       "operators", isOperatorSource,
       source => new Operator(source as OperatorSource)
     );
+    try {
+      Operator.index = JSON.parse(
+        Fs.readFileSync(convertPath("operatorsIndex.json"), "utf-8")
+      );
+    } catch(err) {
+      Operator.index = {};
+    }
   }
 }
 

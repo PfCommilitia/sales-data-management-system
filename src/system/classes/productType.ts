@@ -1,6 +1,7 @@
 import { Opt } from "./opt";
 import * as Fs from "fs";
 import { convertPath, loadAll, meta } from "../IO/io";
+import Product from "./product";
 
 interface ProductTypeSource {
   id: number;
@@ -28,6 +29,7 @@ export class ProductType {
     meta.lastProductTypeId += 1;
     productType.writeToFile(true);
     ProductType.loaded.push(productType);
+    ProductType.index[productType.toInternalName()] = productType;
     return productType;
   }
 
@@ -48,18 +50,8 @@ export class ProductType {
 
   public writeToFile(updateIndex: boolean): void {
     Fs.writeFileSync(convertPath(`productTypes/${ this.id }.json`), this.toJson());
-    if (!updateIndex) {
-      return;
-    }
-    try {
-      const index = JSON.parse(Fs.readFileSync(convertPath(`productTypes/index.json`), "utf-8"));
-      index[this.toInternalName()] = this.toNumber();
-      Fs.writeFileSync(convertPath(`productTypes/index.json`), JSON.stringify(index));
-    } catch (err) {
-      Fs.writeFileSync(
-        convertPath(`productTypes/index.json`),
-        JSON.stringify({ [this.toInternalName()]: this.toNumber() })
-      );
+    if (updateIndex) {
+      Fs.writeFileSync(convertPath(`productTypesIndex.json`), JSON.stringify(ProductType.index));
     }
   }
 
@@ -85,6 +77,13 @@ export class ProductType {
       "productTypes", isProductTypeSource,
       obj => new ProductType(obj as ProductTypeSource)
     );
+    try {
+      ProductType.index = JSON.parse(
+        Fs.readFileSync(convertPath(`productTypesIndex.json`), "utf-8")
+      );
+    } catch(err) {
+      ProductType.index = {};
+    }
   }
 }
 

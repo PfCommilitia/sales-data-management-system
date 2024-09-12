@@ -47,6 +47,7 @@ export class Product {
     meta.lastProductId += 1;
     product.writeToFile(true);
     Product.loaded.push(product);
+    Product.index[product.toInternalName()] = product;
     return product;
   }
 
@@ -70,18 +71,8 @@ export class Product {
 
   public writeToFile(updateIndex: boolean): void {
     Fs.writeFileSync(convertPath(`products/${ this.id }.json`), this.toJson());
-    if (!updateIndex) {
-      return;
-    }
-    try {
-      const index = JSON.parse(Fs.readFileSync(convertPath(`productsIndex.json`), "utf-8"));
-      index[this.toInternalName()] = this.toNumber();
-      Fs.writeFileSync(convertPath(`productsIndex.json`), JSON.stringify(index));
-    } catch (err) {
-      Fs.writeFileSync(
-        convertPath(`productsIndex.json`),
-        JSON.stringify({ [this.toInternalName()]: this.toNumber() })
-      );
+    if (updateIndex) {
+      Fs.writeFileSync(convertPath(`productsIndex.json`), JSON.stringify(Product.index));
     }
   }
 
@@ -107,6 +98,11 @@ export class Product {
       "products", isProductSource,
       source => new Product(source as ProductSource)
     );
+    try {
+      Product.index = JSON.parse(Fs.readFileSync(convertPath("productsIndex.json"), "utf-8"));
+    } catch(err) {
+      Product.index = {};
+    }
   }
 }
 
