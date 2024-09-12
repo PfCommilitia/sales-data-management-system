@@ -72,7 +72,9 @@ export class Product {
   public writeToFile(updateIndex: boolean): void {
     Fs.writeFileSync(convertPath(`products/${ this.id }.json`), this.toJson());
     if (updateIndex) {
-      Fs.writeFileSync(convertPath(`productsIndex.json`), JSON.stringify(Product.index));
+      Fs.writeFileSync(
+        convertPath(`productsIndex.json`), JSON.stringify(Product.index)
+      );
     }
   }
 
@@ -99,8 +101,9 @@ export class Product {
       source => new Product(source as ProductSource)
     );
     try {
-      Product.index = JSON.parse(Fs.readFileSync(convertPath("productsIndex.json"), "utf-8"));
-    } catch(err) {
+      Product.index =
+        JSON.parse(Fs.readFileSync(convertPath("productsIndex.json"), "utf-8"));
+    } catch (err) {
       Product.index = {};
     }
   }

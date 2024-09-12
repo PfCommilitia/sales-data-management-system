@@ -11,8 +11,8 @@ interface Configuration extends WebpackConfiguration {
 
 const config: Configuration = {
   resolve: {
-    extensions: [".tsx", ".ts", ".js"],
-    mainFields: ["main", "module", "browser"],
+    extensions: [ ".tsx", ".ts", ".js" ],
+    mainFields: [ "main", "module", "browser" ]
   },
   entry: path.resolve(rootPath, "src/renderer", "index.tsx"),
   target: "electron-renderer",
@@ -24,19 +24,19 @@ const config: Configuration = {
         exclude: /node_modules/,
         include: /src/,
         use: {
-          loader: "ts-loader",
-        },
+          loader: "ts-loader"
+        }
       },
       {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
-        type: "asset/resource",
-      },
-    ],
+        type: "asset/resource"
+      }
+    ]
   },
   devServer: {
     static: {
       directory: path.resolve(rootPath, "dist/renderer"),
-      publicPath: "/",
+      publicPath: "/"
     },
     port: 4000,
     historyApiFallback: true,
@@ -45,11 +45,11 @@ const config: Configuration = {
   },
   output: {
     path: path.resolve(rootPath, "dist/renderer"),
-    filename: "js/[name].js",
+    filename: "js/[name].js"
   },
   plugins: [
-    new HtmlWebpackPlugin({ template: path.resolve(rootPath, "index.html") }),
-  ],
+    new HtmlWebpackPlugin({ template: path.resolve(rootPath, "index.html") })
+  ]
 };
 
 export default config;

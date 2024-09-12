@@ -47,7 +47,11 @@ export class Modifier {
   }
 
   public generate(
-    type: ModifierType, product: Product, operator: Operator, timeStamp: Date, amount: number
+    type: ModifierType,
+    product: Product,
+    operator: Operator,
+    timeStamp: Date,
+    amount: number
   ): Modifier {
     const modifier = new Modifier({
       id: meta.lastModifierId,
@@ -89,7 +93,11 @@ export class Modifier {
   }
 
   public writeToFile(): void {
-    Fs.writeFileSync(convertPath(`modifiers/${ this.toNumber() }.json`), this.toJson(), "utf-8");
+    Fs.writeFileSync(
+      convertPath(`modifiers/${ this.toNumber() }.json`),
+      this.toJson(),
+      "utf-8"
+    );
   }
 
   public toNumber(): number {

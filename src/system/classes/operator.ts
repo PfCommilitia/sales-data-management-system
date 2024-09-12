@@ -50,7 +50,9 @@ export class Operator {
   public writeToFile(updateIndex: boolean): void {
     Fs.writeFileSync(convertPath(`operators/${ this.id }.json`), this.toJson());
     if (updateIndex) {
-      Fs.writeFileSync(convertPath(`operatorsIndex.json`), JSON.stringify(Operator.index));
+      Fs.writeFileSync(
+        convertPath(`operatorsIndex.json`), JSON.stringify(Operator.index)
+      );
     }
   }
 
@@ -80,7 +82,7 @@ export class Operator {
       Operator.index = JSON.parse(
         Fs.readFileSync(convertPath("operatorsIndex.json"), "utf-8")
       );
-    } catch(err) {
+    } catch (err) {
       Operator.index = {};
     }
   }

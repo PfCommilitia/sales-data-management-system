@@ -5,7 +5,7 @@ const rootPath = path.resolve(__dirname, "..");
 
 const config: Configuration = {
   resolve: {
-    extensions: [".tsx", ".ts", ".js"],
+    extensions: [ ".tsx", ".ts", ".js" ]
   },
   devtool: "source-map",
   entry: path.resolve(rootPath, "src/main", "main.ts"),
@@ -17,18 +17,18 @@ const config: Configuration = {
         exclude: /node_modules/,
         include: /src/,
         use: {
-          loader: "ts-loader",
-        },
-      },
-    ],
+          loader: "ts-loader"
+        }
+      }
+    ]
   },
   node: {
-    __dirname: false,
+    __dirname: false
   },
   output: {
     path: path.resolve(rootPath, "dist"),
-    filename: "[name].js",
-  },
+    filename: "[name].js"
+  }
 };
 
 export default config;

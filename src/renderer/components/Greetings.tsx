@@ -6,7 +6,8 @@ export default function Greetings(): JSX.Element {
   return (
       <Container maxWidth="md" sx={ { mt: 8 } }>
         <Grid container justifyContent="center">
-          <Box component="img" src={ electronLogo } width={ 200 } height={ 200 }/>
+          <Box component="img" src={ electronLogo } width={ 200 }
+               height={ 200 }/>
         </Grid>
         <Typography variant="h1" textAlign="center" sx={ { mt: 8 } }>
           Electron boilerplate with TypeScript, React, and MUI

@@ -25,9 +25,11 @@ export function convertPath(suffix: string) {
 }
 
 export async function initPath(): Promise<void> {
-  await Promise.all(dirs.map(convertPath).filter(dir => !Fs.existsSync(dir)).map(
-    dir => Fs.promises.mkdir(dir, { recursive: true })
-  ));
+  await Promise.all(
+    dirs.map(convertPath).filter(dir => !Fs.existsSync(dir)).map(
+      dir => Fs.promises.mkdir(dir, { recursive: true })
+    )
+  );
   if (!Fs.existsSync(convertPath("meta.json"))) {
     Fs.writeFileSync(convertPath("meta.json"), JSON.stringify({
       lastModifierId: 0,
@@ -40,7 +42,9 @@ export async function initPath(): Promise<void> {
 
 (
   () => {
-    const metaSource = JSON.parse(Fs.readFileSync(convertPath("meta.json"), "utf-8"));
+    const metaSource = JSON.parse(
+      Fs.readFileSync(convertPath("meta.json"), "utf-8")
+    );
     meta.lastModifierId = metaSource.lastModifierId;
     meta.lastOperatorId = metaSource.lastOperatorId;
     meta.lastProductId = metaSource.lastProductId;
@@ -50,26 +54,30 @@ export async function initPath(): Promise<void> {
 
 export async function loadAll<T>(
   path: string,
-  filter: (arg: T) => boolean = (_obj: Record<string, any>) => true,
-  process: (arg: Record<string, any>) => T = (obj: Record<string, any>) => obj as T
+  filter: (arg: Record<string, any>) => boolean
+    = (_obj: Record<string, any>) => true,
+  process: (arg: Record<string, any>) => T
+    = (obj: Record<string, any>) => obj as T
 ): Promise<T[]> {
-  return await (
-    async () => (
-      await Promise.all(
-        Fs.readdirSync(convertPath(path)).map(
-          file => async () => {
-            const obj = JSON.parse(
-              await Fs.promises.readFile(convertPath(`${ path }/${ file }`), "utf-8")
-            );
-            if (filter(obj)) {
-              return process(obj);
-            }
-            return null;
+  return (
+    await Promise.all(
+      (
+        await Fs.promises.readdir(convertPath(path))
+      ).map(
+        async file => {
+          const obj = JSON.parse(
+            await Fs.promises.readFile(
+              convertPath(`${ path }/${ file }`), "utf-8"
+            )
+          ) as Record<string, any>;
+          if (filter(obj)) {
+            return process(obj);
           }
-        )
+          return null;
+        }
       )
-    ).filter(obj => obj !== null) as unknown as T[]
-  )();
+    )
+  ).filter(obj => obj !== null) as unknown as T[];
 }
 
 export function loadLocalization(key: string) {

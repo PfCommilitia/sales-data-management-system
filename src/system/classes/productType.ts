@@ -24,7 +24,9 @@ export class ProductType {
   }
 
   public static generate(internalName: string): ProductType {
-    const productType = new ProductType({ id: meta.lastProductTypeId, internalName });
+    const productType = new ProductType(
+      { id: meta.lastProductTypeId, internalName }
+    );
     meta.lastProductTypeId += 1;
     productType.writeToFile(true);
     ProductType.loaded.push(productType);
@@ -48,9 +50,14 @@ export class ProductType {
   }
 
   public writeToFile(updateIndex: boolean): void {
-    Fs.writeFileSync(convertPath(`productTypes/${ this.id }.json`), this.toJson());
+    Fs.writeFileSync(
+      convertPath(`productTypes/${ this.id }.json`), this.toJson()
+    );
     if (updateIndex) {
-      Fs.writeFileSync(convertPath(`productTypesIndex.json`), JSON.stringify(ProductType.index));
+      Fs.writeFileSync(
+        convertPath(`productTypesIndex.json`),
+        JSON.stringify(ProductType.index)
+      );
     }
   }
 
@@ -80,7 +87,7 @@ export class ProductType {
       ProductType.index = JSON.parse(
         Fs.readFileSync(convertPath(`productTypesIndex.json`), "utf-8")
       );
-    } catch(err) {
+    } catch (err) {
       ProductType.index = {};
     }
   }
