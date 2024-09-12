@@ -1,7 +1,6 @@
 import { Opt } from "./opt";
 import * as Fs from "fs";
 import { convertPath, loadAll, meta } from "../IO/io";
-import Product from "./product";
 
 interface ProductTypeSource {
   id: number;
