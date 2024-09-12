@@ -10,6 +10,8 @@ const dirs = [
 
 let basePath = "";
 
+export const meta = {} as Record<string, any>;
+
 export function setBasePath(path: string) {
   basePath = path;
 }
@@ -22,10 +24,52 @@ export function convertPath(suffix: string) {
   return Path.join(basePath, suffix);
 }
 
-export function initPath() {
-  dirs.forEach((dir) => {
-    Fs.mkdirSync(convertPath(dir), { recursive: true });
-  });
+export async function initPath(): Promise<void> {
+  await Promise.all(dirs.map(convertPath).filter(dir => !Fs.existsSync(dir)).map(
+    dir => Fs.promises.mkdir(dir, { recursive: true })
+  ));
+  if (!Fs.existsSync(convertPath("meta.json"))) {
+    Fs.writeFileSync(convertPath("meta.json"), JSON.stringify({
+      lastModifierId: 0,
+      lastOperatorId: 0,
+      lastProductId: 0,
+      lastProductTypeId: 0
+    }));
+  }
+}
+
+(
+  () => {
+    const metaSource = JSON.parse(Fs.readFileSync(convertPath("meta.json"), "utf-8"));
+    meta.lastModifierId = metaSource.lastModifierId;
+    meta.lastOperatorId = metaSource.lastOperatorId;
+    meta.lastProductId = metaSource.lastProductId;
+    meta.lastProductTypeId = metaSource.lastProductTypeId;
+  }
+)();
+
+export async function loadAll<T>(
+  path: string,
+  filter: (arg: T) => boolean = (_obj: Record<string, any>) => true,
+  process: (arg: Record<string, any>) => T = (obj: Record<string, any>) => obj as T
+): Promise<T[]> {
+  return await (
+    async () => (
+      await Promise.all(
+        Fs.readdirSync(convertPath(path)).map(
+          file => async () => {
+            const obj = JSON.parse(
+              await Fs.promises.readFile(convertPath(`${ path }/${ file }`), "utf-8")
+            );
+            if (filter(obj)) {
+              return process(obj);
+            }
+            return null;
+          }
+        )
+      )
+    ).filter(obj => obj !== null) as unknown as T[]
+  )();
 }
 
 export function loadLocalization(key: string) {
@@ -39,7 +83,7 @@ export function saveLocalization(key: string, value: string) {
 export function loadJson(path: string): Record<string, any> {
   try {
     return JSON.parse(Fs.readFileSync(path, "utf-8"));
-  } catch(err) {
+  } catch (err) {
     return {};
   }
 }

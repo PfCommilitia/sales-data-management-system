@@ -1,26 +1,53 @@
 import { ProductType } from "./productType";
 import { Opt } from "./opt";
 import * as Fs from "fs";
-import { convertPath } from "../IO/io";
+import { convertPath, loadAll, meta } from "../IO/io";
 
 interface ProductSource {
   id: number;
   internalName: string;
   type: number;
   deleted: boolean;
+  stock: number;
+}
+
+function isProductSource(obj: Record<string, any>): boolean {
+  return typeof obj.id === "number" &&
+    typeof obj.internalName === "string" &&
+    typeof obj.type === "number" &&
+    typeof obj.deleted === "boolean" &&
+    typeof obj.stock === "number";
 }
 
 export class Product {
+  public static loaded: Product[] = [];
+  public static index: Record<string, Product> = {};
   public id: number;
   public internalName: string;
   public type: ProductType;
   public deleted: boolean;
+  public stock: number;
 
   public constructor(fromObject: ProductSource) {
     this.id = fromObject.id;
     this.internalName = fromObject.internalName;
     this.type = ProductType.fromNumber(fromObject.type).unwrap();
     this.deleted = fromObject.deleted;
+    this.stock = fromObject.stock;
+  }
+
+  public generate(internalName: string, type: ProductType) {
+    const product = new Product({
+      id: meta.lastProductId,
+      internalName,
+      type: type.toNumber(),
+      deleted: false,
+      stock: 0
+    });
+    meta.lastProductId += 1;
+    product.writeToFile(true);
+    Product.loaded.push(product);
+    return product;
   }
 
   public static fromJson(json: string): Product {
@@ -32,29 +59,27 @@ export class Product {
       id: this.toNumber(),
       internalName: this.toInternalName(),
       type: this.type.toNumber(),
-      deleted: this.deleted
+      deleted: this.deleted,
+      stock: this.stock
     } as ProductSource);
   }
 
-  public static fromNumber(type: number): Opt<Product> {
-    try {
-      return Opt.create(
-        new Product(JSON.parse(Fs.readFileSync(convertPath(`products/${ type }.json`), "utf-8")))
-      );
-    } catch(err) {
-      return Opt.create();
-    }
+  public static fromNumber(id: number): Opt<Product> {
+    return Opt.create(Product.loaded[id]);
   }
 
-  public writeToFile(): void {
+  public writeToFile(updateIndex: boolean): void {
     Fs.writeFileSync(convertPath(`products/${ this.id }.json`), this.toJson());
+    if (!updateIndex) {
+      return;
+    }
     try {
-      const index = JSON.parse(Fs.readFileSync(convertPath(`products/index.json`), "utf-8"));
+      const index = JSON.parse(Fs.readFileSync(convertPath(`productsIndex.json`), "utf-8"));
       index[this.toInternalName()] = this.toNumber();
-      Fs.writeFileSync(convertPath(`products/index.json`), JSON.stringify(index));
+      Fs.writeFileSync(convertPath(`productsIndex.json`), JSON.stringify(index));
     } catch (err) {
       Fs.writeFileSync(
-        convertPath(`products/index.json`),
+        convertPath(`productsIndex.json`),
         JSON.stringify({ [this.toInternalName()]: this.toNumber() })
       );
     }
@@ -65,15 +90,23 @@ export class Product {
   }
 
   public static fromInternalName(name: string): Opt<Product> {
-    const index = JSON.parse(Fs.readFileSync(convertPath(`products/index.json`), "utf-8"))[name];
-    if (index === undefined) {
-      return Opt.create();
-    }
-    return Product.fromNumber(index);
+    return Opt.create(Product.index[name]);
   }
 
   public toInternalName(): string {
     return this.internalName;
+  }
+
+  public set(arg: Partial<this>): void {
+    Object.assign(this, arg);
+    this.writeToFile(false);
+  }
+
+  public static async loadProducts(): Promise<void> {
+    Product.loaded = await loadAll(
+      "products", isProductSource,
+      source => new Product(source as ProductSource)
+    );
   }
 }
 

@@ -41,6 +41,7 @@ const config: Configuration = {
     port: 4000,
     historyApiFallback: true,
     compress: true,
+    hot: true
   },
   output: {
     path: path.resolve(rootPath, "dist/renderer"),

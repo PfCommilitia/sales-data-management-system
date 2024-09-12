@@ -13,8 +13,9 @@ function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
       devTools: process.env.NODE_ENV !== "production",
-      preload: path.join(__dirname, "preload.js"),
+      preload: path.join(__dirname, "preload.js")
     },
+    autoHideMenuBar: true
   });
 
   if (process.env.NODE_ENV === "development") {
@@ -24,7 +25,7 @@ function createWindow() {
       url.format({
         pathname: path.join(__dirname, "renderer/index.html"),
         protocol: "file:",
-        slashes: true,
+        slashes: true
       })
     );
   }

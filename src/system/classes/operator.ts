@@ -1,5 +1,5 @@
 import { Opt } from "./opt";
-import { convertPath } from "../IO/io";
+import { convertPath, loadAll, meta } from "../IO/io";
 import * as Fs from "fs";
 
 interface OperatorSource {
@@ -7,13 +7,28 @@ interface OperatorSource {
   internalName: string;
 }
 
+function isOperatorSource(obj: Record<string, any>): boolean {
+  return typeof obj.id === "number" &&
+    typeof obj.internalName === "string";
+}
+
 export class Operator {
+  public static loaded: Operator[] = [];
+  public static index: Record<string, Operator> = {};
   public id: number;
   public internalName: string;
 
   public constructor(fromObject: OperatorSource) {
     this.id = fromObject.id;
     this.internalName = fromObject.internalName;
+  }
+
+  public static generate(internalName: string): Operator {
+    const operator = new Operator({ id: meta.lastOperatorId, internalName });
+    meta.lastOperatorId += 1;
+    operator.writeToFile(true);
+    Operator.loaded.push(operator);
+    return operator;
   }
 
   public static fromJson(json: string): Operator {
@@ -27,25 +42,22 @@ export class Operator {
     } as OperatorSource);
   }
 
-  public static fromNumber(type: number): Opt<Operator> {
-    try {
-      return Opt.create(
-        Operator.fromJson(Fs.readFileSync(convertPath(`operators/${ type }.json`), "utf-8"))
-      );
-    } catch (err) {
-      return Opt.create();
-    }
+  public static fromNumber(id: number): Opt<Operator> {
+    return Opt.create(Operator.loaded[id]);
   }
 
-  public writeToFile(): void {
+  public writeToFile(updateIndex: boolean): void {
     Fs.writeFileSync(convertPath(`operators/${ this.id }.json`), this.toJson());
+    if (!updateIndex) {
+      return;
+    }
     try {
-      const index = JSON.parse(Fs.readFileSync(convertPath(`operators/index.json`), "utf-8"));
+      const index = JSON.parse(Fs.readFileSync(convertPath(`operatorsIndex.json`), "utf-8"));
       index[this.toInternalName()] = this.toNumber();
-      Fs.writeFileSync(convertPath(`operators/index.json`), JSON.stringify(index));
+      Fs.writeFileSync(convertPath(`operatorsIndex.json`), JSON.stringify(index));
     } catch (err) {
       Fs.writeFileSync(
-        convertPath(`operators/index.json`),
+        convertPath(`operatorsIndex.json`),
         JSON.stringify({ [this.toInternalName()]: this.toNumber() })
       );
     }
@@ -56,15 +68,23 @@ export class Operator {
   }
 
   public static fromInternalName(name: string): Opt<Operator> {
-    const index = JSON.parse(Fs.readFileSync(convertPath(`operators/index.json`), "utf-8"))[name];
-    if (index === undefined) {
-      return Opt.create();
-    }
-    return Operator.fromNumber(index);
+    return Opt.create(Operator.index[name]);
   }
 
   public toInternalName(): string {
     return this.internalName;
+  }
+
+  public set(arg: Partial<this>): void {
+    Object.assign(this, arg);
+    this.writeToFile(false);
+  }
+
+  public static async loadOperators(): Promise<void> {
+    Operator.loaded = await loadAll(
+      "operators", isOperatorSource,
+      source => new Operator(source as OperatorSource)
+    );
   }
 }
 

@@ -2,7 +2,7 @@ import { ModifierType } from "./modifierType";
 import { Product } from "./product";
 import { Operator } from "./operator";
 import { Opt } from "./opt";
-import { convertPath } from "../IO/io";
+import { convertPath, loadAll, meta } from "../IO/io";
 import * as Fs from "fs";
 
 interface ModifierSource {
@@ -17,7 +17,19 @@ interface ModifierSource {
   amount: number;
 }
 
+function isModifierSource(obj: Record<string, any>): boolean {
+  return typeof obj.id === "number" &&
+    typeof obj.type === "number" &&
+    typeof obj.product === "object" &&
+    typeof obj.product.id === "number" &&
+    typeof obj.product.internalName === "string" &&
+    typeof obj.operator === "number" &&
+    typeof obj.timeStamp === "string" &&
+    typeof obj.amount === "number";
+}
+
 export class Modifier {
+  public static loaded: Modifier[] = [];
   public id: number;
   public type: ModifierType;
   public product: Product;
@@ -32,6 +44,26 @@ export class Modifier {
     this.operator = Operator.fromNumber(fromObject.operator).unwrap();
     this.timeStamp = new Date(fromObject.timeStamp);
     this.amount = fromObject.amount;
+  }
+
+  public generate(
+    type: ModifierType, product: Product, operator: Operator, timeStamp: Date, amount: number
+  ): Modifier {
+    const modifier = new Modifier({
+      id: meta.lastModifierId,
+      type: ModifierType.toNumber(type),
+      product: {
+        id: product.toNumber(),
+        internalName: product.toInternalName()
+      },
+      operator: operator.toNumber(),
+      timeStamp: timeStamp.toISOString(),
+      amount
+    });
+    meta.lastModifierId += 1;
+    modifier.writeToFile();
+    Modifier.loaded.push(modifier);
+    return modifier;
   }
 
   public static fromJson(json: string): Modifier {
@@ -53,13 +85,7 @@ export class Modifier {
   }
 
   public static fromNumber(id: number): Opt<Modifier> {
-    try {
-      return Opt.create(
-        new Modifier(JSON.parse(Fs.readFileSync(convertPath(`modifiers/${ id }.json`), "utf-8")))
-      );
-    } catch (err) {
-      return Opt.create();
-    }
+    return Opt.create(Modifier.loaded[id]);
   }
 
   public writeToFile(): void {
@@ -68,6 +94,18 @@ export class Modifier {
 
   public toNumber(): number {
     return this.id;
+  }
+
+  public set(arg: Partial<this>): void {
+    Object.assign(this, arg);
+    this.writeToFile();
+  }
+
+  public static async loadModifiers(): Promise<void> {
+    Modifier.loaded = await loadAll(
+      "products", isModifierSource,
+      source => new Modifier(source as ModifierSource)
+    );
   }
 }
 
