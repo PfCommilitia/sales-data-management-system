@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain, dialog } from "electron";
 import * as path from "path";
 import * as url from "url";
 
@@ -12,14 +12,14 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      devTools: process.env.NODE_ENV !== "production",
-      preload: path.join(__dirname, "preload.js")
+      devTools: process.env.NODE_ENV !== "production"
     },
     autoHideMenuBar: true
   });
 
   if (process.env.NODE_ENV === "development") {
     mainWindow.loadURL("http://localhost:4000");
+    mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadURL(
       url.format({
@@ -56,3 +56,16 @@ app.on("activate", () => {
     createWindow();
   }
 });
+
+ipcMain.handle(
+  "select-directory",
+  async function (): Promise<undefined | string> {
+    if (!mainWindow) {
+      return;
+    }
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: [ "openDirectory" ]
+    });
+    return result.filePaths[0];
+  }
+);

@@ -10,7 +10,7 @@ export default function Greetings(): JSX.Element {
                height={ 200 }/>
         </Grid>
         <Typography variant="h1" textAlign="center" sx={ { mt: 8 } }>
-          Electron boilerplate with TypeScript, React, and MUI
+          测试动态加载
         </Typography>
         <Typography variant="body1" textAlign="center" sx={ { mt: 2 } }>
           Made by HelloSoftware

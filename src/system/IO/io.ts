@@ -1,5 +1,6 @@
 import * as Path from "path";
 import * as Fs from "node:fs";
+import { initAll } from "../classes/init";
 
 const dirs = [
   "modifiers",
@@ -10,9 +11,9 @@ const dirs = [
 
 let basePath = "";
 
-export const meta = {} as Record<string, any>;
+export let meta = {} as Record<string, any>;
 
-export const localization = {} as Record<string, any>;
+export let localization = {} as Record<string, any>;
 
 export function setBasePath(path: string): void {
   basePath = path;
@@ -33,13 +34,17 @@ export async function initPath(): Promise<void> {
     )
   );
   if (!Fs.existsSync(convertPath("meta.json"))) {
-    await saveJson(convertPath("meta.json"), {
+    meta = {
       lastModifierId: 0,
       lastOperatorId: 0,
       lastProductId: 0,
       lastProductTypeId: 0
-    });
+    }
+    await saveJson(convertPath("meta.json"), meta);
+  } else {
+    await loadMeta();
   }
+  await initAll();
 }
 
 export async function loadMeta(): Promise<void> {
@@ -49,7 +54,6 @@ export async function loadMeta(): Promise<void> {
   meta.lastProductId = metaSource.lastProductId;
   meta.lastProductTypeId = metaSource.lastProductTypeId;
 }
-
 
 export async function loadAll<T>(
   path: string,
@@ -81,11 +85,8 @@ export function getLocalization(key: string): string {
   ) || key;
 }
 
-export async function loadLocalization(key: string): Promise<void> {
-  Object.assign(
-    localization,
-    await getJson(convertPath(`localization.json`), key) ?? {}
-  );
+export async function loadLocalization(): Promise<void> {
+  localization = await loadJson(convertPath(`localization.json`));
 }
 
 export async function saveLocalization(
