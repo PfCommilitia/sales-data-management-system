@@ -2,7 +2,7 @@ import { ModifierType } from "./modifierType";
 import { Product } from "./product";
 import { Operator } from "./operator";
 import { Opt } from "./opt";
-import { convertPath, loadAll, meta } from "../IO/io";
+import { convertPath, loadAll, meta, saveMeta } from "../IO/io";
 import * as Fs from "fs";
 
 interface ModifierSource {
@@ -46,7 +46,7 @@ export class Modifier {
     this.amount = fromObject.amount;
   }
 
-  public async generate(
+  public static async generate(
     type: ModifierType,
     product: Product,
     operator: Operator,
@@ -65,8 +65,19 @@ export class Modifier {
       amount
     });
     meta.lastModifierId += 1;
-    await modifier.writeToFile();
+    await saveMeta();
     Modifier.loaded.push(modifier);
+    await modifier.writeToFile();
+    let after = modifier.product.stock;
+    switch (modifier.type) {
+      case ModifierType.SALE:
+        after -= modifier.amount;
+        break;
+      case ModifierType.RESTOCK:
+        after += modifier.amount;
+        break;
+    }
+    await modifier.product.set({ stock: after });
     return modifier;
   }
 
@@ -111,7 +122,7 @@ export class Modifier {
 
   public static async loadModifiers(): Promise<void> {
     Modifier.loaded = await loadAll(
-      "products", isModifierSource,
+      "modifiers", isModifierSource,
       source => new Modifier(source as ModifierSource)
     );
   }

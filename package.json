@@ -23,7 +23,10 @@
   "dependencies": {
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
+    "@mui/icons-material": "^5.9.1",
     "@mui/material": "^5.9.1",
+    "@mui/x-date-pickers": "^6.20.2",
+    "date-fns": "^2.30.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -52,10 +55,10 @@
     "webpack-dev-server": "^4.9.3"
   },
   "build": {
-    "appId": "com.company.app",
-    "productName": "App Name",
+    "appId": "com.commilitiaWorkshop.salesDataManagementSystem",
+    "productName": "销售数据管理系统",
     "mac": {
-      "category": "public.app-category.video"
+      "category": "public.app-category.business"
     },
     "directories": {
       "output": "packages"

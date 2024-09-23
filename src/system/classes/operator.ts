@@ -1,5 +1,12 @@
 import { Opt } from "./opt";
-import { convertPath, loadAll, loadJson, meta, saveJson } from "../IO/io";
+import {
+  convertPath,
+  loadAll,
+  loadJson,
+  meta,
+  saveJson,
+  saveMeta
+} from "../IO/io";
 import * as Fs from "fs";
 
 interface OperatorSource {
@@ -26,9 +33,10 @@ export class Operator {
   public static async generate(internalName: string): Promise<Operator> {
     const operator = new Operator({ id: meta.lastOperatorId, internalName });
     meta.lastOperatorId += 1;
-    await operator.writeToFile(true);
+    await saveMeta();
     Operator.loaded.push(operator);
     Operator.index[operator.toInternalName()] = operator;
+    await operator.writeToFile(true);
     return operator;
   }
 
@@ -53,7 +61,12 @@ export class Operator {
       this.toJson()
     );
     if (updateIndex) {
-      await saveJson(convertPath(`operatorsIndex.json`), Operator.index);
+      const indexNumber = {} as Record<string, number>;
+      for (const key in Operator.index) {
+        const obj = Operator.index[key];
+        indexNumber[key] = obj.toNumber();
+      }
+      await saveJson(convertPath(`operatorsIndex.json`), indexNumber);
     }
   }
 
@@ -79,7 +92,11 @@ export class Operator {
       "operators", isOperatorSource,
       source => new Operator(source as OperatorSource)
     );
-    Operator.index = await loadJson(convertPath("operatorsIndex.json"));
+    const indexRaw = await loadJson(convertPath(`operatorsIndex.json`));
+    Operator.index = {};
+    for (const key in indexRaw) {
+      Operator.index[key] = Operator.fromNumber(indexRaw[key]).unwrap();
+    }
   }
 }
 

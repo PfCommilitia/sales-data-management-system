@@ -1,11 +1,13 @@
 import React from "react";
-import { Box, Tab, Tabs, Typography } from "@mui/material";
+import { Box, Tab, Tabs, Typography, Container } from "@mui/material";
+import { ProductView } from "./productPage";
+import { StockView } from "./stockPage";
 
 function TabPanel(props: any): JSX.Element {
   const { children, value, index, ...other } = props;
 
   return (
-      <div
+      <Container
           role="tabpanel"
           hidden={ value !== index }
           id={ `page-tab-${ index }` }
@@ -17,11 +19,13 @@ function TabPanel(props: any): JSX.Element {
               <Typography>{ children }</Typography>
             </Box>
         ) }
-      </div>
+      </Container>
   );
 }
 
-export function TabPages(): JSX.Element {
+export function TabPages({ setOperating }: {
+  setOperating: React.Dispatch<React.SetStateAction<boolean>>
+}): JSX.Element {
   const [ page, setPage ] = React.useState(0);
 
   function switchPage(event: React.SyntheticEvent, newValue: number) {
@@ -29,7 +33,7 @@ export function TabPages(): JSX.Element {
   }
 
   return (
-      <Box sx={ { width: "100%" } }>
+      <Container sx={ { width: "100%" } }>
         <Tabs
             value={ page }
             onChange={ switchPage }
@@ -44,13 +48,13 @@ export function TabPages(): JSX.Element {
                aria-controls="page-tab-1"/>
         </Tabs>
 
-        <TabPanel value={page} index={0}>
-          商品目录占位符
+        <TabPanel value={ page } index={ 0 }>
+          <ProductView setOperating={ setOperating }/>
         </TabPanel>
-        <TabPanel value={page} index={1}>
-          库存管理占位符
+        <TabPanel value={ page } index={ 1 }>
+          <StockView setOperating={ setOperating }/>
         </TabPanel>
-      </Box>
+      </Container>
   );
 }
 

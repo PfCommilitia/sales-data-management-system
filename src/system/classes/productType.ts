@@ -1,6 +1,13 @@
 import { Opt } from "./opt";
 import * as Fs from "fs";
-import { convertPath, loadAll, loadJson, meta, saveJson } from "../IO/io";
+import {
+  convertPath,
+  loadAll,
+  loadJson,
+  meta,
+  saveJson,
+  saveMeta
+} from "../IO/io";
 
 interface ProductTypeSource {
   id: number;
@@ -28,9 +35,10 @@ export class ProductType {
       { id: meta.lastProductTypeId, internalName }
     );
     meta.lastProductTypeId += 1;
-    await productType.writeToFile(true);
+    await saveMeta();
     ProductType.loaded.push(productType);
     ProductType.index[productType.toInternalName()] = productType;
+    await productType.writeToFile(true);
     return productType;
   }
 
@@ -55,7 +63,12 @@ export class ProductType {
       this.toJson()
     );
     if (updateIndex) {
-      await saveJson(convertPath(`productTypesIndex.json`), ProductType.index);
+      const indexNumber: Record<string, number> = {};
+      for (const name in ProductType.index) {
+        const obj = ProductType.index[name];
+        indexNumber[name] = obj.toNumber();
+      }
+      await saveJson(convertPath(`productTypesIndex.json`), indexNumber);
     }
   }
 
@@ -81,7 +94,11 @@ export class ProductType {
       "productTypes", isProductTypeSource,
       obj => new ProductType(obj as ProductTypeSource)
     );
-    ProductType.index = await loadJson(convertPath("productTypesIndex.json"));
+    const indexRaw = await loadJson(convertPath("productTypesIndex.json"));
+    ProductType.index = {};
+    for (const name in indexRaw) {
+      ProductType.index[name] = ProductType.fromNumber(indexRaw[name]).unwrap();
+    }
   }
 }
 

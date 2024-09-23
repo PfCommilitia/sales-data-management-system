@@ -55,7 +55,7 @@ function SelectFolderPage({ callback }: {
             alignItems: "center",
             justifyContent: "center",
             height: "100%",
-            width: '100%',
+            width: "100%",
             textAlign: "center"
           } }
       >
@@ -101,7 +101,7 @@ export default function App(): JSX.Element {
             { !initialized ? (
                 <SelectFolderPage callback={ initApp }/>
             ) : (
-                <TabPages/>
+                <TabPages setOperating={ setOperating }/>
             ) }
           </main>
         </Box>

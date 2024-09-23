@@ -39,7 +39,7 @@ export async function initPath(): Promise<void> {
       lastOperatorId: 0,
       lastProductId: 0,
       lastProductTypeId: 0
-    }
+    };
     await saveJson(convertPath("meta.json"), meta);
   } else {
     await loadMeta();
@@ -53,6 +53,10 @@ export async function loadMeta(): Promise<void> {
   meta.lastOperatorId = metaSource.lastOperatorId;
   meta.lastProductId = metaSource.lastProductId;
   meta.lastProductTypeId = metaSource.lastProductTypeId;
+}
+
+export async function saveMeta(): Promise<void> {
+  await saveJson(convertPath("meta.json"), meta);
 }
 
 export async function loadAll<T>(
@@ -93,7 +97,8 @@ export async function saveLocalization(
   key: string,
   value: string
 ): Promise<void> {
-  await setJson(convertPath(`localization.json`), key, value);
+  localization[key] = value;
+  await saveJson(convertPath(`localization.json`), localization);
 }
 
 export async function loadJson(path: string): Promise<Record<string, any>> {
