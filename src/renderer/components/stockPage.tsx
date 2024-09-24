@@ -130,7 +130,8 @@ function generateModifierTableBody(
       filterProductTypes,
       filterOperators,
       filterModifierType
-  ).map(modifier => generateModifierLine(modifier));
+  ).sort((a, b) => a.id - b.id)
+      .map(modifier => generateModifierLine(modifier));
 }
 
 function getFilteredTotalSales(
