@@ -57,9 +57,9 @@ Node.js为跨平台环境，主流的Windows，MacOS和Linux系统均可执行�
 git clone https://github.com/PfCommilitia/sales-data-management-system .
 ```
 
-这将从GitHub上下载源码到该项目目录中。
+这将从GitHub上下载源码到该项目目录中。如果你的网络环境不佳，请自行设法解决。
 
-你也可以直接将分支下载为压缩包解压到项目目录中。如不考虑与git交互，两种方式没有区别。
+你也可以直接将分支下载为压缩包解压到项目目录中。如不考虑与Git的交互，两种方式没有区别。
 
 ### 3. 安装所需包
 
