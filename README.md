@@ -2,33 +2,36 @@
 
 ## 声明
 
-该项目基于该模板开发。该模板不包含任何业务逻辑代码：https://github.com/hellosoftware-io/electron-typescript-react-material-ui
+- 该项目在GitHub上通过MIT协议开源，仓库地址为：https://github.com/PfCommilitia/sales-data-management-system
 
-该项目开发过程中使用了生成式AI。
+- 该项目基于模板开发：https://github.com/hellosoftware-io/electron-typescript-react-material-ui
+- 数据管理和用户界面设计未参考或套用其他个人或团体的工作成果
+
+- 该项目开发过程中使用了生成式AI
 
 ## 主要技术
 
-Node.js：开源跨平台JavaScript运行环境，适用于高并发需求的开发。
+[Node.js](https://nodejs.org/)：开源跨平台JavaScript运行环境，适用于高并发需求的开发。
 
-Electron：基于Node.js和Chromium的跨平台GUI应用框架。
+[Electron](https://www.electronjs.org/)：基于Node.js和Chromium的跨平台GUI应用框架。
 
-React：前端JavaScript工具库，构建基于UI组件的用户界面。
+[React](https://react.dev/)：前端JavaScript工具库，构建基于UI组件的用户界面。
 
-MUI：原Material UI，遵循Google界面设计哲学的React工具库。
+[MUI](https://mui.com/)：原Material UI，遵循Google界面设计哲学的React工具库。
 
-TypeScript：微软开发的JavaScript超集，提供静态类型检查等功能。
+[TypeScript](https://www.typescriptlang.org/)：微软开发的JavaScript超集，提供静态类型检查等功能。
 
 ## 思路
 
 ### 数据结构
 
-使用ProductType、Product、Operator、Modifier四个类和ModifierType枚举存储数据。
+使用`ProductType`、`Product`、`Operator`、`Modifier`四个类和`ModifierType`枚举存储数据。
 
 ### 文件结构
 
-类的每个实例都存储为一个JSON文件，实例之间的连接通过id实现。
+类的每个实例都存储为一个`.json`文件，实例之间的连接通过`id`实现。
 
-此外，数据目录根目录下存在meta文件，描述此数据目录中的对象数量；index文件是将字符串内部名与id进行关联的文件，在GUI界面中，由于可以直接选择对象，故没有作用；localization对应内部名和显示名。
+此外，数据目录根目录下存在`meta`文件，描述此数据目录中的对象数量；`index`文件是将字符串内部名与`id`进行关联的文件，在GUI界面中，由于可以直接选择对象，故没有作用；`localization`对应内部名和显示名。
 
 ## 构建
 
@@ -40,9 +43,11 @@ TypeScript：微软开发的JavaScript超集，提供静态类型检查等功能
 
 你需要在计算机上安装以下程序：
 
-- Git
-- Node.js，版本不低于16.13.0。建议直接安装最新稳定版本。
+- [Git](https://git-scm.com/)
+- [Node.js](https://nodejs.org/)，版本不低于16.13.0。建议直接安装最新稳定版本。
 - NPM，通常随附于Node.js中。确认你的NPM包管理器的版本不低于7.0.0。
+
+Node.js为跨平台环境，主流的Windows，MacOS和Linux系统均可执行此项目。对于大部分Linux发行版，你可能需要配置GUI环境才能正常执行此项目。
 
 ### 2. 下载源码
 
@@ -53,6 +58,8 @@ git clone https://github.com/PfCommilitia/sales-data-management-system .
 ```
 
 这将从GitHub上下载源码到该项目目录中。
+
+你也可以直接将分支下载为压缩包解压到项目目录中。如不考虑与git交互，两种方式没有区别。
 
 ### 3. 安装所需包
 
